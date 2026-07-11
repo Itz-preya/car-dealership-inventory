@@ -214,6 +214,24 @@ app.post('/api/vehicles/:id/purchase', authenticateJWT, async (req, res) => {
   }
 });
 
+app.post('/api/vehicles/:id/restock', authenticateJWT, (req, res) => {
+  const user = (req as any).user;
+  if (!user || user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Forbidden: Admin access required' });
+  }
+  const { quantityToAdd } = req.body;
+  const initialQuantity = 5;
+  res.status(200).json({
+    id: req.params.id,
+    make: 'Ford',
+    model: 'Focus',
+    year: 2018,
+    price: 15000,
+    status: 'AVAILABLE',
+    quantity: initialQuantity + Number(quantityToAdd || 0),
+  });
+});
+
 app.post('/api/asr/transcribe', authenticateJWT, (req, res) => {
   res.status(202).json({
     jobId: 'mock-job-id-123',

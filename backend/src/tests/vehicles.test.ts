@@ -345,4 +345,49 @@ describe('Vehicles API', () => {
       expect(response.body.error).toBe('Out of stock');
     });
   });
+
+  describe('POST /api/vehicles/:id/restock', () => {
+    it('should allow admin to restock a vehicle and return 200 with updated quantity', async () => {
+      // Seed a vehicle
+      const vehicle = await prisma.vehicle.create({
+        data: {
+          make: 'Ford',
+          model: 'Focus',
+          year: 2018,
+          price: 15000,
+          status: 'AVAILABLE',
+          quantity: 5,
+        },
+      });
+
+      const response = await request(app)
+        .post(`/api/vehicles/${vehicle.id}/restock`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ quantityToAdd: 10 });
+
+      expect(response.status).toBe(200);
+      expect(response.body.quantity).toBe(15);
+    });
+
+    it('should deny standard user to restock a vehicle and return 403', async () => {
+      // Seed a vehicle
+      const vehicle = await prisma.vehicle.create({
+        data: {
+          make: 'Ford',
+          model: 'Focus',
+          year: 2018,
+          price: 15000,
+          status: 'AVAILABLE',
+          quantity: 5,
+        },
+      });
+
+      const response = await request(app)
+        .post(`/api/vehicles/${vehicle.id}/restock`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ quantityToAdd: 10 });
+
+      expect(response.status).toBe(403);
+    });
+  });
 });

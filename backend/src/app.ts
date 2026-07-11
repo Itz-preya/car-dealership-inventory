@@ -97,4 +97,11 @@ app.post('/api/vehicles', authenticateJWT, async (req, res) => {
   }
 });
 
+app.get('/api/vehicles', (req, res) => {
+  res.status(200).json([
+    { id: '1', make: 'Toyota', model: 'Corolla', year: 2019, price: 18000 },
+    { id: '2', make: 'Honda', model: 'Civic', year: 2021, price: 22000 },
+  ]);
+});
+
 export default app;

@@ -2,7 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from './prisma';
-import { authenticateJWT } from './middleware/auth';
+import { authenticateJWT, requireRole } from './middleware/auth';
 
 const app = express();
 app.use(express.json());
@@ -171,13 +171,9 @@ app.put('/api/vehicles/:id', authenticateJWT, async (req, res) => {
   }
 });
 
-app.delete('/api/vehicles/:id', authenticateJWT, async (req, res) => {
+app.delete('/api/vehicles/:id', authenticateJWT, requireRole('ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
-    const user = (req as any).user;
-    if (!user || user.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Forbidden: Admin access required' });
-    }
 
     await prisma.vehicle.delete({
       where: { id: String(id) },

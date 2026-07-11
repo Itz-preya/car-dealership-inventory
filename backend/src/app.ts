@@ -31,4 +31,12 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
+  res.status(200).json({ token: 'mock-jwt-token' });
+});
+
 export default app;

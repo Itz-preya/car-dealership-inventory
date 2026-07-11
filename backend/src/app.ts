@@ -74,12 +74,19 @@ app.post('/api/vehicles', authenticateJWT, async (req, res) => {
       return res.status(400).json({ error: 'Missing required vehicle fields' });
     }
 
+    const parsedYear = Number(year);
+    const parsedPrice = Number(price);
+
+    if (isNaN(parsedYear) || isNaN(parsedPrice) || parsedYear <= 0 || parsedPrice <= 0) {
+      return res.status(400).json({ error: 'Year and price must be valid positive numbers' });
+    }
+
     const vehicle = await prisma.vehicle.create({
       data: {
         make,
         model,
-        year: Number(year),
-        price: Number(price),
+        year: parsedYear,
+        price: parsedPrice,
         status: status || 'AVAILABLE',
       },
     });

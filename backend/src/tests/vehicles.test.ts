@@ -1,6 +1,7 @@
 import request from 'supertest';
 import app from '../app';
 import jwt from 'jsonwebtoken';
+import prisma from '../prisma';
 
 describe('Vehicles API', () => {
   const JWT_SECRET = process.env.JWT_SECRET || 'secret';
@@ -13,6 +14,16 @@ describe('Vehicles API', () => {
       JWT_SECRET,
       { expiresIn: '1h' }
     );
+  });
+
+  beforeEach(async () => {
+    // Clean up vehicles created during testing
+    await prisma.vehicle.deleteMany();
+  });
+
+  afterAll(async () => {
+    // Disconnect prisma client to avoid open handles
+    await prisma.$disconnect();
   });
 
   describe('POST /api/vehicles', () => {

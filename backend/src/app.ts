@@ -2,6 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from './prisma';
+import { authenticateJWT } from './middleware/auth';
 
 const app = express();
 app.use(express.json());
@@ -65,21 +66,28 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-app.post('/api/vehicles', (req, res) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(401).json({ error: 'Authorization header is missing' });
-  }
+app.post('/api/vehicles', authenticateJWT, async (req, res) => {
+  try {
+    const { make, model, year, price, status } = req.body;
 
-  const { make, model, year, price, status } = req.body;
-  res.status(201).json({
-    id: 'mock-vehicle-id',
-    make,
-    model,
-    year,
-    price,
-    status: status || 'AVAILABLE',
-  });
+    if (!make || !model || year === undefined || price === undefined) {
+      return res.status(400).json({ error: 'Missing required vehicle fields' });
+    }
+
+    const vehicle = await prisma.vehicle.create({
+      data: {
+        make,
+        model,
+        year: Number(year),
+        price: Number(price),
+        status: status || 'AVAILABLE',
+      },
+    });
+
+    res.status(201).json(vehicle);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 export default app;

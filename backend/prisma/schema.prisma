@@ -13,3 +13,12 @@ model User {
   password String
   role     String @default("USER")
 }
+
+model Vehicle {
+  id     String @id @default(uuid())
+  make   String
+  model  String
+  year   Int
+  price  Float
+  status String @default("AVAILABLE")
+}

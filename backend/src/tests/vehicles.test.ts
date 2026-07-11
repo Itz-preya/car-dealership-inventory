@@ -6,11 +6,18 @@ import prisma from '../prisma';
 describe('Vehicles API', () => {
   const JWT_SECRET = process.env.JWT_SECRET || 'secret';
   let token: string;
+  let adminToken: string;
 
   beforeAll(() => {
-    // Generate a valid JWT token for testing
+    // Generate standard user token
     token = jwt.sign(
       { id: 'test-user-id', role: 'USER' },
+      JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+    // Generate admin token
+    adminToken = jwt.sign(
+      { id: 'test-admin-id', role: 'ADMIN' },
       JWT_SECRET,
       { expiresIn: '1h' }
     );
@@ -247,6 +254,52 @@ describe('Vehicles API', () => {
       // Other fields should remain unchanged
       expect(response.body.make).toBe('Ford');
       expect(response.body.model).toBe('Focus');
+    });
+  });
+
+  describe('DELETE /api/vehicles/:id', () => {
+    it('should allow admin to delete a vehicle and return 200', async () => {
+      // Seed a vehicle
+      const vehicle = await prisma.vehicle.create({
+        data: {
+          make: 'Ford',
+          model: 'Fiesta',
+          year: 2017,
+          price: 10000,
+          status: 'AVAILABLE',
+        },
+      });
+
+      const response = await request(app)
+        .delete(`/api/vehicles/${vehicle.id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+
+      // Verify it is deleted from the DB
+      const dbVehicle = await prisma.vehicle.findUnique({
+        where: { id: vehicle.id },
+      });
+      expect(dbVehicle).toBeNull();
+    });
+
+    it('should deny standard user to delete a vehicle and return 403', async () => {
+      // Seed a vehicle
+      const vehicle = await prisma.vehicle.create({
+        data: {
+          make: 'Ford',
+          model: 'Fiesta',
+          year: 2017,
+          price: 10000,
+          status: 'AVAILABLE',
+        },
+      });
+
+      const response = await request(app)
+        .delete(`/api/vehicles/${vehicle.id}`)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(403);
     });
   });
 });

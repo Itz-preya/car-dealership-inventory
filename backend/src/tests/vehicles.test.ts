@@ -218,4 +218,35 @@ describe('Vehicles API', () => {
       expect(models).not.toContain('Yaris');
     });
   });
+
+  describe('PUT /api/vehicles/:id', () => {
+    it('should update vehicle details and return 200', async () => {
+      // Seed a vehicle
+      const vehicle = await prisma.vehicle.create({
+        data: {
+          make: 'Ford',
+          model: 'Focus',
+          year: 2018,
+          price: 15000,
+          status: 'AVAILABLE',
+        },
+      });
+
+      const response = await request(app)
+        .put(`/api/vehicles/${vehicle.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          price: 14000,
+          status: 'SOLD',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.id).toBe(vehicle.id);
+      expect(response.body.price).toBe(14000);
+      expect(response.body.status).toBe('SOLD');
+      // Other fields should remain unchanged
+      expect(response.body.make).toBe('Ford');
+      expect(response.body.model).toBe('Focus');
+    });
+  });
 });

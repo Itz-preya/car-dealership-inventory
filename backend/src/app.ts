@@ -214,22 +214,30 @@ app.post('/api/vehicles/:id/purchase', authenticateJWT, async (req, res) => {
   }
 });
 
-app.post('/api/vehicles/:id/restock', authenticateJWT, (req, res) => {
-  const user = (req as any).user;
-  if (!user || user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Forbidden: Admin access required' });
+app.post('/api/vehicles/:id/restock', authenticateJWT, requireRole('ADMIN'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { quantityToAdd } = req.body;
+
+    const vehicle = await prisma.vehicle.findUnique({
+      where: { id: String(id) },
+    });
+
+    if (!vehicle) {
+      return res.status(404).json({ error: 'Vehicle not found' });
+    }
+
+    const updatedVehicle = await prisma.vehicle.update({
+      where: { id: String(id) },
+      data: {
+        quantity: vehicle.quantity + Number(quantityToAdd || 0),
+      },
+    });
+
+    res.status(200).json(updatedVehicle);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
   }
-  const { quantityToAdd } = req.body;
-  const initialQuantity = 5;
-  res.status(200).json({
-    id: req.params.id,
-    make: 'Ford',
-    model: 'Focus',
-    year: 2018,
-    price: 15000,
-    status: 'AVAILABLE',
-    quantity: initialQuantity + Number(quantityToAdd || 0),
-  });
 });
 
 app.post('/api/asr/transcribe', authenticateJWT, (req, res) => {

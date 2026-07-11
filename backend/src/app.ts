@@ -185,6 +185,35 @@ app.delete('/api/vehicles/:id', authenticateJWT, requireRole('ADMIN'), async (re
   }
 });
 
+app.post('/api/vehicles/:id/purchase', authenticateJWT, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const vehicle = await prisma.vehicle.findUnique({
+      where: { id: String(id) },
+    });
+
+    if (!vehicle) {
+      return res.status(404).json({ error: 'Vehicle not found' });
+    }
+
+    if (vehicle.quantity <= 0) {
+      return res.status(400).json({ error: 'Out of stock' });
+    }
+
+    const updatedVehicle = await prisma.vehicle.update({
+      where: { id: String(id) },
+      data: {
+        quantity: vehicle.quantity - 1,
+      },
+    });
+
+    res.status(200).json(updatedVehicle);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.post('/api/asr/transcribe', authenticateJWT, (req, res) => {
   res.status(202).json({
     jobId: 'mock-job-id-123',

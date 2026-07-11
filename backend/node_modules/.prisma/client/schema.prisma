@@ -15,10 +15,11 @@ model User {
 }
 
 model Vehicle {
-  id     String @id @default(uuid())
-  make   String
-  model  String
-  year   Int
-  price  Float
-  status String @default("AVAILABLE")
+  id       String @id @default(uuid())
+  make     String
+  model    String
+  year     Int
+  price    Float
+  status   String @default("AVAILABLE")
+  quantity Int    @default(0)
 }

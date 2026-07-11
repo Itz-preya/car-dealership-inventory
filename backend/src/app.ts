@@ -115,4 +115,14 @@ app.get('/api/vehicles', async (req, res) => {
   }
 });
 
+app.post('/api/asr/transcribe', authenticateJWT, (req, res) => {
+  res.status(202).json({
+    jobId: 'mock-job-id-123',
+    status: 'PROCESSING',
+    file: {
+      name: 'sample.wav',
+    },
+  });
+});
+
 export default app;

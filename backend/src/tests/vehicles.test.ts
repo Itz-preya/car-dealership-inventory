@@ -302,4 +302,47 @@ describe('Vehicles API', () => {
       expect(response.status).toBe(403);
     });
   });
+
+  describe('POST /api/vehicles/:id/purchase', () => {
+    it('should purchase a vehicle and decrease its stock quantity', async () => {
+      // Seed a vehicle with quantity 5 (cast to any for now since schema is not updated yet)
+      const vehicle = await prisma.vehicle.create({
+        data: {
+          make: 'Toyota',
+          model: 'Corolla',
+          year: 2020,
+          price: 20000,
+          status: 'AVAILABLE',
+          quantity: 5,
+        } as any,
+      });
+
+      const response = await request(app)
+        .post(`/api/vehicles/${vehicle.id}/purchase`)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.quantity).toBe(4);
+    });
+
+    it('should return 400 Out of stock when purchasing a vehicle with quantity 0', async () => {
+      const vehicle = await prisma.vehicle.create({
+        data: {
+          make: 'Honda',
+          model: 'Civic',
+          year: 2021,
+          price: 22000,
+          status: 'AVAILABLE',
+          quantity: 0,
+        } as any,
+      });
+
+      const response = await request(app)
+        .post(`/api/vehicles/${vehicle.id}/purchase`)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Out of stock');
+    });
+  });
 });

@@ -116,4 +116,35 @@ describe('Vehicles API', () => {
       expect(responseNegativeYear.status).toBe(400);
     });
   });
+
+  describe('GET /api/vehicles', () => {
+    it('should return a list of all vehicles and status 200', async () => {
+      // Seed a couple of vehicles first so there is data to return
+      await prisma.vehicle.createMany({
+        data: [
+          {
+            make: 'Toyota',
+            model: 'Corolla',
+            year: 2019,
+            price: 18000,
+          },
+          {
+            make: 'Honda',
+            model: 'Civic',
+            year: 2021,
+            price: 22000,
+          },
+        ],
+      });
+
+      const response = await request(app)
+        .get('/api/vehicles');
+
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(2);
+      expect(response.body[0].make).toBe('Toyota');
+      expect(response.body[1].make).toBe('Honda');
+    });
+  });
 });

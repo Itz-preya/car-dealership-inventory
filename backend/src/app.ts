@@ -65,4 +65,21 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+app.post('/api/vehicles', (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ error: 'Authorization header is missing' });
+  }
+
+  const { make, model, year, price, status } = req.body;
+  res.status(201).json({
+    id: 'mock-vehicle-id',
+    make,
+    model,
+    year,
+    price,
+    status: status || 'AVAILABLE',
+  });
+});
+
 export default app;

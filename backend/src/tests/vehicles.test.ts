@@ -146,5 +146,25 @@ describe('Vehicles API', () => {
       expect(response.body[0].make).toBe('Toyota');
       expect(response.body[1].make).toBe('Honda');
     });
+
+    it('should return a 200 status code and an empty array when filtering by a status that does not exist', async () => {
+      // Seed a vehicle
+      await prisma.vehicle.create({
+        data: {
+          make: 'Toyota',
+          model: 'Corolla',
+          year: 2019,
+          price: 18000,
+          status: 'AVAILABLE',
+        },
+      });
+
+      const response = await request(app)
+        .get('/api/vehicles?status=NON_EXISTENT_STATUS');
+
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(0);
+    });
   });
 });

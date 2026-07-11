@@ -97,11 +97,37 @@ app.post('/api/vehicles', authenticateJWT, async (req, res) => {
   }
 });
 
-app.get('/api/vehicles/search', (req, res) => {
-  res.status(200).json([
-    { id: '1', make: 'Toyota', model: 'Corolla', year: 2019, price: 18000, status: 'AVAILABLE' },
-    { id: '2', make: 'Toyota', model: 'Camry', year: 2021, price: 25000, status: 'AVAILABLE' },
-  ]);
+app.get('/api/vehicles/search', async (req, res) => {
+  try {
+    const { make, model, category, minPrice, maxPrice } = req.query;
+    const where: any = {};
+
+    if (make) {
+      where.make = {
+        contains: String(make),
+      };
+    }
+    if (model) {
+      where.model = {
+        contains: String(model),
+      };
+    }
+
+    if (minPrice || maxPrice) {
+      where.price = {};
+      if (minPrice) {
+        where.price.gte = Number(minPrice);
+      }
+      if (maxPrice) {
+        where.price.lte = Number(maxPrice);
+      }
+    }
+
+    const vehicles = await prisma.vehicle.findMany({ where });
+    res.status(200).json(vehicles);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 app.get('/api/vehicles', async (req, res) => {

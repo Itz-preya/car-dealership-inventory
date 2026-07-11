@@ -167,4 +167,55 @@ describe('Vehicles API', () => {
       expect(response.body.length).toBe(0);
     });
   });
+
+  describe('GET /api/vehicles/search', () => {
+    it('should return 200 and search results filtered by make, minPrice, and maxPrice', async () => {
+      // Seed a few vehicles
+      await prisma.vehicle.createMany({
+        data: [
+          {
+            make: 'Toyota',
+            model: 'Corolla',
+            year: 2019,
+            price: 18000,
+            status: 'AVAILABLE',
+          },
+          {
+            make: 'Toyota',
+            model: 'Camry',
+            year: 2021,
+            price: 25000,
+            status: 'AVAILABLE',
+          },
+          {
+            make: 'Honda',
+            model: 'Civic',
+            year: 2021,
+            price: 22000,
+            status: 'AVAILABLE',
+          },
+          {
+            make: 'Toyota',
+            model: 'Yaris',
+            year: 2018,
+            price: 8000,
+            status: 'AVAILABLE',
+          },
+        ],
+      });
+
+      const response = await request(app)
+        .get('/api/vehicles/search?make=Toyota&minPrice=10000&maxPrice=30000');
+
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(2);
+      
+      const models = response.body.map((v: any) => v.model);
+      expect(models).toContain('Corolla');
+      expect(models).toContain('Camry');
+      expect(models).not.toContain('Civic');
+      expect(models).not.toContain('Yaris');
+    });
+  });
 });

@@ -99,7 +99,16 @@ app.post('/api/vehicles', authenticateJWT, async (req, res) => {
 
 app.get('/api/vehicles', async (req, res) => {
   try {
-    const vehicles = await prisma.vehicle.findMany();
+    const { status } = req.query;
+    const filter: any = {};
+
+    if (status) {
+      filter.where = {
+        status: String(status),
+      };
+    }
+
+    const vehicles = await prisma.vehicle.findMany(filter);
     res.status(200).json(vehicles);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });

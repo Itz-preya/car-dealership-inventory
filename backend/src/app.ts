@@ -171,6 +171,24 @@ app.put('/api/vehicles/:id', authenticateJWT, async (req, res) => {
   }
 });
 
+app.delete('/api/vehicles/:id', authenticateJWT, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = (req as any).user;
+    if (!user || user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Forbidden: Admin access required' });
+    }
+
+    await prisma.vehicle.delete({
+      where: { id: String(id) },
+    });
+
+    res.status(200).json({ message: 'Vehicle deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.post('/api/asr/transcribe', authenticateJWT, (req, res) => {
   res.status(202).json({
     jobId: 'mock-job-id-123',

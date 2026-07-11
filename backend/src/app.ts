@@ -1,10 +1,12 @@
 import express from 'express';
+import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from './prisma';
 import { authenticateJWT, requireRole } from './middleware/auth';
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 app.post('/api/auth/register', async (req, res) => {

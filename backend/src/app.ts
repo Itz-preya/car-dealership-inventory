@@ -148,17 +148,27 @@ app.get('/api/vehicles', async (req, res) => {
   }
 });
 
-app.put('/api/vehicles/:id', authenticateJWT, (req, res) => {
-  const { id } = req.params;
-  const { price, status } = req.body;
-  res.status(200).json({
-    id,
-    make: 'Ford',
-    model: 'Focus',
-    year: 2018,
-    price: price !== undefined ? Number(price) : 15000,
-    status: status || 'AVAILABLE',
-  });
+app.put('/api/vehicles/:id', authenticateJWT, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { make, model, year, price, status } = req.body;
+
+    const updateData: any = {};
+    if (make !== undefined) updateData.make = make;
+    if (model !== undefined) updateData.model = model;
+    if (year !== undefined) updateData.year = Number(year);
+    if (price !== undefined) updateData.price = Number(price);
+    if (status !== undefined) updateData.status = status;
+
+    const vehicle = await prisma.vehicle.update({
+      where: { id: String(id) },
+      data: updateData,
+    });
+
+    res.status(200).json(vehicle);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 app.post('/api/asr/transcribe', authenticateJWT, (req, res) => {
